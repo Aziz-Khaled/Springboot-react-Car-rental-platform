@@ -30,7 +30,7 @@ function Dashboard() {
   }, []);
 
   const getCars = async () => {
-    setLoading(true);
+  
     try {
       const response = await axios.get("http://localhost:8080/cars/all", {
         headers: {
@@ -48,7 +48,7 @@ function Dashboard() {
   };
 
   const getRentals = async () => {
-    setLoading(true);
+  
     try {
       const response = await axios.get("http://localhost:8080/rentals/allRentals", {
         headers: {
@@ -60,63 +60,55 @@ function Dashboard() {
     } catch (error) {
       console.error("Error fetching rentals:", error);
       setMessage("Failed to load rentals. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+    } 
   };
 
   const postCars = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    
     try {
       const response = await axios.post("http://localhost:8080/cars/add", car, {
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
       });
       setMessage("Car added successfully!");
-      setCarList([...carList, response.data.Car]);
-      setCar({ model: "", brand: "", availability: true, rentalPrice: "" });
-      window.location.reload()
+      setCarList([...carList, response.data]); 
+      setCar({ model: "", brand: "", availability: true, rentalPrice: "" }); 
     } catch (error) {
       console.error("Error adding car:", error);
       setMessage("Failed to add car. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+    } 
   };
-
-  const updateCar = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      await axios.put(`http://localhost:8080/cars/update/${car.id}`, car);
-      setMessage("Car updated successfully!");
-      setCarList((prevCarList) =>
-        prevCarList.map((c) => (c.id === car.id ? { ...c, ...car } : c))
-      );
-      setCar({ model: "", brand: "", availability: true, rentalPrice: "" });
-    } catch (error) {
-      console.error("Error updating car:", error);
-      setMessage("Failed to update car. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  
   const deleteCar = async (id) => {
-    setLoading(true);
+    
     try {
       await axios.delete(`http://localhost:8080/cars/delete/${id}`);
       setMessage("Car deleted successfully!");
-      setCarList((prevCarList) => prevCarList.filter((car) => car.id !== id));
+      setCarList(carList.filter((car) => car.id !== id)); 
     } catch (error) {
       console.error("Error deleting car:", error);
-      setMessage("Failed to delete car. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+      if (error.response && error.response.status === 401) {
+        setMessage("This car cannot be deleted because it is currently in service.");
+      } else {
+        setMessage("Failed to delete car. Please try again.");
+      }
+    } 
   };
+  
+  const updateCar = async (e) => {
+    e.preventDefault();
+  
+    try {
+      await axios.put(`http://localhost:8080/cars/update/${car.id}`, car);
+      setMessage("Car updated successfully!");
+      setCarList(carList.map((c) => (c.id === car.id ? { ...c, ...car } : c))); 
+      setCar({ model: "", brand: "", availability: true, rentalPrice: "" }); 
+    } catch (error) {
+      console.error("Error updating car:", error);
+      setMessage("Failed to update car. Please try again.");
+    } 
+  };
+  
 
   const handleEdit = (carToEdit) => {
     setCar({ ...carToEdit });
@@ -178,7 +170,11 @@ function Dashboard() {
         </button>
       </form>
 
-      {message && <p className="message">{message}</p>}
+      {message && (
+  <h2 className="message" style={{ color: message.includes("delete") ? "red" : "green" }}>
+    {message}
+  </h2>
+)}
 
       <h1 className="car-list-heading">List of Cars</h1>
       {loading ? (
@@ -205,11 +201,11 @@ function Dashboard() {
                   <td>{car.availability ? "Available" : "Not Available"}</td>
                   <td>${car.rentalPrice}</td>
                   <td>
-                    <button onClick={() => handleEdit(car)} className="update-button">
-                      Update
+                    <button type="button"onClick={() => handleEdit(car)}className="update-button">
+                    Update
                     </button>
-                    <button onClick={() => deleteCar(car.id)} className="delete-button">
-                      Delete
+                    <button type="button" onClick={() => deleteCar(car.id)}className="delete-button">
+                    Delete      
                     </button>
                   </td>
                 </tr>
